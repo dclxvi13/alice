@@ -21,23 +21,19 @@ defmodule AliceWeb.ConnWorker do
   end
 
   defp serve(socket) do
-    case read_line(socket) do
-
+    case :gen_tcp.recv(socket, 0) do
+        {:ok, "store\r\n"} ->
+            #IO.puts "store"
+            msgs = AliceWeb.ConnServer.store()
+            rep = :io_lib.format("~w", [msgs])
+            :gen_tcp.send(socket, rep)
+        {:error, :closed} ->
+          IO.puts "Connection closed"
+          exit(:normal)
+        line -> IO.inspect line
     end
-
-    #socket
-    #|> read_line()
-    #|> write_line(socket)
 
     serve(socket)
   end
 
-  defp read_line(socket) do
-    {:ok, data} = :gen_tcp.recv(socket, 0)
-    data
-  end
-
-  defp write_line(line, socket) do
-    :gen_tcp.send(socket, line)
-  end
 end

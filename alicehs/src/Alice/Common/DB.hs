@@ -120,7 +120,7 @@ getAssoc conn first second = do
                     assoc_Second = second,
                     assoc_Index = 1}
 
-            return $
+            return
                 GetAssocsResult {
                     getAssocsResult_Main = mainAssoc,
                     getAssocsResult_FirstResult = firstList',
@@ -137,7 +137,7 @@ getAssoc conn first second = do
             run conn "UPDATE assocs SET index = (?) WHERE first = (?) AND second = (?)"
                 [toSql $ index + 1, toSql first, toSql second]
 
-            return $
+            return
                 GetAssocsResult {
                     getAssocsResult_Main = mainAssoc,
                     getAssocsResult_FirstResult = firstList',
@@ -156,12 +156,10 @@ getEmo conn form = do
         [[]] -> do
             undefined
         [[ad, dop, ox, ph, co, en]] -> do
-            return $ Emo {
-                emo_Ad = fromSql $ ad,
-                emo_Do = fromSql $ dop,
-                emo_Ox = fromSql $ ox,
-                emo_Ph = fromSql $ ph,
-                emo_Co = fromSql $ co,
-                emo_En = fromSql $ en}
-
-
+            return Emo {
+                emo_Ad = fromSql ad,
+                emo_Do = fromSql dop,
+                emo_Ox = fromSql ox,
+                emo_Ph = fromSql ph,
+                emo_Co = fromSql co,
+                emo_En = fromSql en}

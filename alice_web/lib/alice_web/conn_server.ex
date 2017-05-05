@@ -22,23 +22,30 @@ defmodule AliceWeb.ConnServer do
     GenServer.cast(AliceWeb.ConnServer, {:alice, message})
   end
 
+  def store() do
+    GenServer.call(AliceWeb.ConnServer, :store)
+  end
+
   # Handlers
 
   def init(:ok) do
-    {:ok, %{}}
+    {:ok, %{messages: []}}
+  end
+
+  def handle_call(:store, _from, %{messages: messages} = state) do
+    {:reply, {:messages, messages}, %{state | messages: []}}
   end
 
   def handle_call(_msg, _from, state) do
     {:reply, :ok, state}
   end
 
-  def handle_cast({:socket, socket}, _state) do
-    {:noreply, %{socket: socket}}
+  def handle_cast({:socket, socket}, state) do
+    {:noreply, %{state | socket: socket}}
   end
 
-  def handle_cast({:message, message}, state) do
-
-    {:noreply, state}
+  def handle_cast({:message, message}, %{messages: messages} = state) do
+    {:noreply, %{state | messages: [message | messages]}}
   end
 
   def handle_cast({:alice, message}, %{socket: socket} = state) do

@@ -21,6 +21,7 @@ import Alice.Messages.ConsMsg
 
 import Alice.Common.DB
 
+import Alice.Config (tickPeriod)
 import qualified Alice.Workers.Ticker as T
 
 import Control.Concurrent
@@ -45,7 +46,7 @@ initRoot :: TQueue RootMsg -> TQueue CommMsg -> TQueue AsMsg -> TQueue ConsMsg -
 initRoot selfQ commQ asQ consQ = do
     print "Here start Root"
 
-    ticker <- T.start (2*1000*1000) commQ
+    ticker <- T.start tickPeriod commQ
 
     conn <- connectDB
 

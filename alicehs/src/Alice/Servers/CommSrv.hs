@@ -52,8 +52,11 @@ loopComm state selfQ rootQ asQ = do
             atomically $ writeTQueue (commState_textSensor state) TS.GetTextData
             loopComm state selfQ rootQ asQ
         TextSensorClosed -> do
-            -- do something
-            loopComm state selfQ rootQ asQ
+            -- restart text sensor
+            textS <- TS.start selfQ
+            let state' = state {commState_textSensor = textS}
+            
+            loopComm state' selfQ rootQ asQ
         TextData bytes -> do
             --print $ show bytes
             worker <- CW.start CW.Read rootQ asQ bytes

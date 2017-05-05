@@ -12,7 +12,8 @@ defmodule AliceWeb do
       supervisor(AliceWeb.Endpoint, []),
       # Start your own worker by calling: AliceWeb.Worker.start_link(arg1, arg2, arg3)
       # worker(AliceWeb.Worker, [arg1, arg2, arg3]),
-      worker(AliceWeb.ConnServer, [AliceWeb.ConnServer])
+      worker(AliceWeb.ConnServer, [AliceWeb.ConnServer]),
+      worker(Task, [AliceWeb.ConnWorker, :accept, [4040]])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
