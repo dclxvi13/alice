@@ -14,7 +14,7 @@
 
 module Alice.App where
 
-import Alice.SVisor
+import Alice.SVisor as SV
 
 start :: IO()
-start = startSV
+start = SV.start

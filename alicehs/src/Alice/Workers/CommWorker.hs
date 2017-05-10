@@ -20,7 +20,6 @@ CommWorkerDirection(Read, Write)
 import Alice.Messages.RootMsg
 import Alice.Messages.AsMsg
 
---import qualified Alice.Data.Sentence as S
 import Alice.Data.SForm
 import Alice.Data.Form
 
@@ -41,6 +40,7 @@ start Read rootQ asQ bytes = forkIO $ do
     case parseTerm $ B.unpack bytes of
         Right bert ->
           case readBERT bert :: Either String (String, [String]) of
+            Right ("messages", []) -> return ()
             Right ("messages", msgs) -> do
               -- do something
               print $ show msgs

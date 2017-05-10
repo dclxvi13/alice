@@ -16,9 +16,10 @@ module Alice.Servers.AsSrv (start) where
 
 import Alice.Messages.AsMsg
 import Alice.Messages.RootMsg
-import Alice.Messages.ContextMsg
+import Alice.Messages.ErrMsg
+import Alice.Common.Utils
 
-import Alice.Data.SForm
+--import Alice.Data.SForm
 import Alice.Data.Emo
 
 import qualified Alice.Workers.AsWorker as AW
@@ -27,26 +28,25 @@ import Control.Concurrent
 import Control.Concurrent.STM
 import Control.Concurrent.STM.TQueue
 
+--import Control.Exception
+
+import Data.Dynamic
+
 data AsState = AsState {
-    asState_selfQ :: TQueue AsMsg,
-    asState_rootQ :: TQueue RootMsg,
-    asState_contextQ :: TQueue ContextMsg,
+    asState_selfQ :: Queue,
     asState_current :: Emo
     }
 
-start :: TQueue AsMsg -> TQueue RootMsg -> TQueue ContextMsg -> IO ThreadId
-start selfQ rootQ contextQ = do
-    forkIO $ do
-        state <- initSrv selfQ rootQ contextQ
+start :: Queue -> TQueue ErrMsg  -> IO ()
+start selfQ svQ = startActor svQ $ do
+        state <- initSrv selfQ
         loop state
 
-initSrv :: TQueue AsMsg -> TQueue RootMsg -> TQueue ContextMsg -> IO AsState
-initSrv selfQ rootQ contextQ = do
+initSrv :: Queue -> IO AsState
+initSrv selfQ = do
     print "Here start As"
-    return $ AsState {
+    return AsState {
         asState_selfQ = selfQ,
-        asState_rootQ = rootQ,
-        asState_contextQ = contextQ,
         asState_current = Emo {
             emo_Ad = 0 ,
             emo_Co = 0 ,
@@ -59,13 +59,10 @@ initSrv selfQ rootQ contextQ = do
 loop :: AsState -> IO ()
 loop state = do
     msg <- atomically $ readTQueue $ asState_selfQ state
-    case msg of
-        FromComm sforms -> do
-            --print $ show sforms
-
-            AW.start (asState_rootQ state) (asState_contextQ state) (asState_current state) sforms
+    case fromDynamic msg of
+        Just (FromComm sforms) ->
 
             loop state
-        UpdateCurrent emo -> do
+        Just (UpdateCurrent emo) ->
 
             loop state{asState_current = emo}
