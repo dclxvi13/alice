@@ -19,6 +19,7 @@ import Alice.Messages.RootMsg
 import Alice.Messages.AsMsg
 import Alice.Messages.ErrMsg
 import Alice.Common.Utils
+import qualified Alice.NameResolver as NR
 
 import qualified Alice.Sensors.TextSensor as TS
 
@@ -35,35 +36,35 @@ import Data.Dynamic
 
 data CommState = CommState {
   commState_self :: TQueue Dynamic,
-  commState_textSensor :: TQueue TS.TextSensorMsg
+  commState_textSensor :: TQueue TS.TextSensorMsg,
+  commState_nr :: TQueue NR.NRMsg
 }
 
---start :: TQueue CommMsg -> TQueue RootMsg -> TQueue AsMsg -> IO ThreadId
---start selfQ rootQ asQ = forkIO $ do
---        state <- initComm selfQ
---        loopComm state selfQ rootQ asQ
-
-start :: TQueue Dynamic -> TQueue ErrMsg -> IO ()
-start selfQ svQ = startActor svQ $ do
-  state <- initComm selfQ
+start :: TQueue Dynamic -> (TQueue ErrMsg, TQueue NR.NRMsg) -> IO ()
+start selfQ (svQ, nrQ) = startActor svQ $ do
+  state <- initComm selfQ nrQ
   loopComm state
 
-initComm :: TQueue Dynamic -> IO CommState
-initComm selfQ = do
+initComm :: TQueue Dynamic -> TQueue NR.NRMsg -> IO CommState
+initComm selfQ nrQ = do
     print "Here start Comm"
 
     textS <- TS.start selfQ
 
-    return CommState {commState_self = selfQ, commState_textSensor = textS}
+    return CommState {
+      commState_self = selfQ,
+      commState_textSensor = textS,
+      commState_nr = nrQ
+    }
 
 loopComm :: CommState
     -> IO ()
 loopComm state = do
-    msg <- atomically $ readTQueue $ commState_self state
-    case fromDynamic msg of
-      Nothing -> undefined
+    msg <- receive $ commState_self state
+    case msg of
+      Nothing -> print "ERROR: unable cast msg (Comm)"
       Just Tick -> do
-          --print "It is a tick, motherfucker!"
+          print "It is a tick, motherfucker!"
           atomically $ writeTQueue (commState_textSensor state) TS.GetTextData
           loopComm state
       Just TextSensorClosed -> do
@@ -74,6 +75,6 @@ loopComm state = do
           loopComm state'
       Just (TextData bytes) -> do
           --print $ show bytes
-          --worker <- CW.start CW.Read rootQ asQ bytes
+          worker <- CW.start CW.Read (commState_nr state) bytes
 
           loopComm state

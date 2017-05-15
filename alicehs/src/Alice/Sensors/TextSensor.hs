@@ -19,7 +19,7 @@ TextSensorMsg(
 )
 ) where
 
-import Network.Simple.TCP
+import qualified Network.Simple.TCP as Net
 
 import qualified Alice.Config as Config
 import Alice.Messages.CommMsg
@@ -46,20 +46,20 @@ start commQ = do
 
 
 initT :: TQueue TextSensorMsg -> Queue -> IO ()
-initT q commQ = connect Config.adrrStr (show Config.port)
+initT q commQ = Net.connect Config.adrrStr (show Config.port)
     $ \(socket, remoteAddr) -> loop (q, commQ, socket, remoteAddr)
 
-loop :: (TQueue TextSensorMsg, Queue, Socket, SockAddr ) -> IO ()
+loop :: (TQueue TextSensorMsg, Queue, Net.Socket, Net.SockAddr ) -> IO ()
 loop (q, commQ, socket, remoteAddr) = do
     msg <- atomically $ readTQueue q
     case msg of
         GetTextData -> do
             let bytes = B.pack Config.storeStr
             print "Sending"
-            send socket bytes
+            Net.send socket bytes
 
             _t <- timeout 10000000 $ do
-              res <- recv socket Config.packetLength
+              res <- Net.recv socket Config.packetLength
               case res of
                 Just a -> do
                   atomically $ writeTQueue commQ $ toDyn $ TextData a

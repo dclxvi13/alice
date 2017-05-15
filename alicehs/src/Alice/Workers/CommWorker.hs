@@ -22,6 +22,7 @@ import Alice.Messages.AsMsg
 
 import Alice.Data.SForm
 import Alice.Data.Form
+import qualified Alice.NameResolver as NR
 
 import Control.Concurrent
 import Control.Concurrent.STM
@@ -34,8 +35,8 @@ import qualified Data.ByteString.Char8 as B
 
 data CommWorkerDirection = Read | Write
 
-start :: CommWorkerDirection -> TQueue RootMsg -> TQueue AsMsg -> B.ByteString -> IO ThreadId
-start Read rootQ asQ bytes = forkIO $ do
+start :: CommWorkerDirection -> NR.NR -> B.ByteString -> IO ThreadId
+start Read nrQ bytes = forkIO $ do
     selfQ <- atomically newTQueue
     case parseTerm $ B.unpack bytes of
         Right bert ->
@@ -47,7 +48,7 @@ start Read rootQ asQ bytes = forkIO $ do
             Right val -> print $ "wrong term: " ++ show val
             Left readErr -> print $ "read error: " ++ readErr
         Left err -> print $ "error: " ++ show err
-start Write rootQ asQ bytes = forkIO $ do
+start Write nrQ bytes = forkIO $ do
     undefined
 
 askRoot :: TQueue Form -> TQueue RootMsg -> String -> IO Form

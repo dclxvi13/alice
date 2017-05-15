@@ -28,20 +28,18 @@ data TickerMsg = TickerStop
 
 type Ticker = TQueue TickerMsg
 
-start :: Int -> TQueue CommMsg -> IO (TQueue TickerMsg)
-start tickTime commQ = do
-    q <- atomically $ newTQueue
-    forkIO $ do
-        loopTicker q tickTime commQ
+start :: Int -> IO () -> IO (TQueue TickerMsg)
+start tickTime func = do
+    q <- atomically newTQueue
+    forkIO $ loopTicker q tickTime func
     return q
 
-loopTicker :: TQueue TickerMsg -> Int -> TQueue CommMsg -> IO ()
-loopTicker q tickTime commQ = do
+loopTicker :: TQueue TickerMsg -> Int -> IO () -> IO ()
+loopTicker q tickTime func = do
         threadDelay tickTime
         msg <- atomically $ tryReadTQueue q
         case msg of
             Nothing -> do
-                atomically $ writeTQueue commQ Tick
-                loopTicker q tickTime commQ
+                func
+                loopTicker q tickTime func
             Just TickerStop -> return ()
-

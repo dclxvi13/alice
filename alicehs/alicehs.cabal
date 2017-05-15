@@ -19,7 +19,7 @@ library
   build-depends:       base >= 4.7 && < 5
                      , bytestring >= 0.10
                      , stm >= 2.4
-                     , json -any
+                     , containers >= 0.5
                      , network-simple -any
                      , bert -any
                      , HDBC -any
@@ -35,12 +35,12 @@ library
                        Alice.Data.Form
                        Alice.Data.GetAssocsResult
                        Alice.Data.SForm
-                       Alice.Data.Sentence
                        Alice.Messages.AsMsg
                        Alice.Messages.CommMsg
                        Alice.Messages.ConsMsg
                        Alice.Messages.RootMsg
                        Alice.Messages.ErrMsg
+                       Alice.NameResolver
                        Alice.SVisor
                        Alice.Sensors.TextSensor
                        Alice.Servers.AsSrv

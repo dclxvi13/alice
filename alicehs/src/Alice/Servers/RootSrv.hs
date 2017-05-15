@@ -19,6 +19,7 @@ import Alice.Messages.CommMsg
 import Alice.Messages.AsMsg
 import Alice.Messages.ConsMsg
 import Alice.Messages.ErrMsg
+import qualified Alice.NameResolver as NR
 
 import Alice.Common.DB
 
@@ -35,31 +36,33 @@ import Alice.Common.Utils
 data RootState = RootState {
     rootState_selfQ :: Queue,
     rootState_connection :: AliceDB,
+    rootState_nr :: NR.NR,
     rootState_ticker :: T.Ticker
 }
 
-start :: Queue -> TQueue ErrMsg -> IO ()
-start selfQ svQ = startActor svQ $ do
-    state <- initRoot selfQ
+start :: Queue -> (TQueue ErrMsg, TQueue NR.NRMsg) -> IO ()
+start selfQ (svQ, nrQ) = startActor svQ $ do
+    state <- initRoot selfQ nrQ
     loopRoot state
 
-initRoot :: Queue -> IO RootState
-initRoot selfQ = do
+initRoot :: Queue -> NR.NR -> IO RootState
+initRoot selfQ nrQ = do
     print "Here start Root"
 
-    --ticker <- T.start tickPeriod commQ
+    ticker <- T.start tickPeriod $ sendN nrQ "comm" Tick
 
     conn <- connectDB
 
     return RootState {
-        --rootState_ticker = ticker,
+        rootState_ticker = ticker,
         rootState_selfQ = selfQ,
+        rootState_nr = nrQ,
         rootState_connection = conn}
 
 loopRoot :: RootState -> IO ()
 loopRoot state = do
-    msg <- atomically $ readTQueue $ rootState_selfQ state
-    case fromDynamic msg of
+    msg <- receive $ rootState_selfQ state
+    case msg of
         Just (WordToForm word queue) -> do
             form <- getFormByWord (rootState_connection state) word
             atomically $ writeTQueue queue form
