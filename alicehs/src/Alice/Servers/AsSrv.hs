@@ -60,9 +60,9 @@ loop :: AsState -> IO ()
 loop state = do
     msg <- receive $ asState_selfQ state
     case msg of
-        Just (FromComm sforms) ->
-
+        Just (FromComm forms) -> do
+            print $ "AsSrv: " ++ show forms
             loop state
-        Just (UpdateCurrent emo) ->
+        Just (UpdateCurrent emo) -> do
 
             loop state{asState_current = emo}

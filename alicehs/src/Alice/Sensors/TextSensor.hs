@@ -55,14 +55,15 @@ loop (q, commQ, socket, remoteAddr) = do
     case msg of
         GetTextData -> do
             let bytes = B.pack Config.storeStr
-            print "Sending"
+            --print "Sending"
             Net.send socket bytes
 
             _t <- timeout 10000000 $ do
               res <- Net.recv socket Config.packetLength
               case res of
                 Just a -> do
-                  atomically $ writeTQueue commQ $ toDyn $ TextData a
+                  --print $ "TextSensor: " ++ show a
+                  send commQ $ TextData a
                   return 0
                 Nothing -> return 1
 

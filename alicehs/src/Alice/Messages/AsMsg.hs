@@ -14,8 +14,8 @@
 
 module Alice.Messages.AsMsg where
 
-import Alice.Data.SForm
+import Alice.Data.Form
 import Alice.Data.Emo
 
-data AsMsg = FromComm [SForm] |
+data AsMsg = FromComm [[Form]] |
     UpdateCurrent Emo

@@ -47,12 +47,9 @@ start selfQ (svQ, nrQ) = startActor svQ $ do
 
 initRoot :: Queue -> NR.NR -> IO RootState
 initRoot selfQ nrQ = do
-    print "Here start Root"
-
-    ticker <- T.start tickPeriod $ sendN nrQ "comm" Tick
-
     conn <- connectDB
-
+    ticker <- T.start tickPeriod $ sendN nrQ "comm" Tick
+    print "Here start Root"
     return RootState {
         rootState_ticker = ticker,
         rootState_selfQ = selfQ,
@@ -61,15 +58,17 @@ initRoot selfQ nrQ = do
 
 loopRoot :: RootState -> IO ()
 loopRoot state = do
-    msg <- receive $ rootState_selfQ state
-    case msg of
-        Just (WordToForm word queue) -> do
-            form <- getFormByWord (rootState_connection state) word
-            atomically $ writeTQueue queue form
-            loopRoot state
-        Just (GetAssoc queue (first, second)) -> do
-            assocs <- getAssoc (rootState_connection state) first second
-            atomically $ writeTQueue queue assocs
-            loopRoot state
-        Just (GetEmo queue (first, second) currEmo) ->
-            undefined
+  msg <- receive $ rootState_selfQ state
+  case msg of
+    Nothing -> print "ERROR: unable cast msg (Root)"
+    Just (WordToForm word queue) -> do
+        print "word to form"
+        form <- getFormByWord (rootState_connection state) word
+        atomically $ writeTQueue queue form
+        loopRoot state
+    Just (GetAssoc queue (first, second)) -> do
+        --assocs <- getAssoc (rootState_connection state) first second
+        --atomically $ writeTQueue queue assocs
+        loopRoot state
+    Just (GetEmo queue (first, second) currEmo) ->
+        undefined

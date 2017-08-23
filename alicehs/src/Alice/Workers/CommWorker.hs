@@ -23,6 +23,7 @@ import Alice.Messages.AsMsg
 import Alice.Data.SForm
 import Alice.Data.Form
 import qualified Alice.NameResolver as NR
+import Alice.Common.Utils
 
 import Control.Concurrent
 import Control.Concurrent.STM
@@ -37,21 +38,27 @@ data CommWorkerDirection = Read | Write
 
 start :: CommWorkerDirection -> NR.NR -> B.ByteString -> IO ThreadId
 start Read nrQ bytes = forkIO $ do
+    --print "Comm worker starts."
     selfQ <- atomically newTQueue
     case parseTerm $ B.unpack bytes of
         Right bert ->
           case readBERT bert :: Either String (String, [String]) of
             Right ("messages", []) -> return ()
             Right ("messages", msgs) -> do
-              -- do something
-              print $ show msgs
+              let ws = map words msgs
+              --print $ show ws
+              forms <- mapM (mapM (askRoot selfQ nrQ)) ws
+              print $ "CommWorker: " ++ show forms
+              sendN nrQ "as" $ FromComm forms
             Right val -> print $ "wrong term: " ++ show val
             Left readErr -> print $ "read error: " ++ readErr
         Left err -> print $ "error: " ++ show err
 start Write nrQ bytes = forkIO $ do
     undefined
 
-askRoot :: TQueue Form -> TQueue RootMsg -> String -> IO Form
-askRoot selfQ rootQ word = do
-    atomically $ writeTQueue rootQ $ WordToForm word selfQ
-    atomically $ readTQueue selfQ
+askRoot :: TQueue Form -> NR.NR -> String -> IO Form
+askRoot selfQ nrQ word = do
+  --print "sending"
+  sendN nrQ "root" $ WordToForm word selfQ
+  --print "receiving"
+  atomically $ readTQueue selfQ

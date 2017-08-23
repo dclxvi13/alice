@@ -64,7 +64,7 @@ loopComm state = do
     case msg of
       Nothing -> print "ERROR: unable cast msg (Comm)"
       Just Tick -> do
-          print "It is a tick, motherfucker!"
+          --print "It is a tick, motherfucker!"
           atomically $ writeTQueue (commState_textSensor state) TS.GetTextData
           loopComm state
       Just TextSensorClosed -> do
@@ -74,7 +74,7 @@ loopComm state = do
 
           loopComm state'
       Just (TextData bytes) -> do
-          --print $ show bytes
+          --print $ "CommSrv: " ++ show bytes
           worker <- CW.start CW.Read (commState_nr state) bytes
 
           loopComm state

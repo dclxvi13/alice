@@ -29,7 +29,7 @@ defmodule AliceWeb.ConnServer do
   # Handlers
 
   def init(:ok) do
-    {:ok, %{messages: []}}
+    {:ok, %{messages: [], socket: nil}}
   end
 
   def handle_call(:store, _from, %{messages: messages} = state) do
@@ -41,6 +41,7 @@ defmodule AliceWeb.ConnServer do
   end
 
   def handle_cast({:socket, socket}, state) do
+    #IO.puts ""
     {:noreply, %{state | socket: socket}}
   end
 
