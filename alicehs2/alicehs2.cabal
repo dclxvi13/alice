@@ -1,0 +1,54 @@
+name:                alicehs2
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/githubuser/alicehs2#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Author name here
+maintainer:          example@example.com
+copyright:           2017 Author name here
+category:            Web
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Alice
+  build-depends:       base >= 4.7 && < 5
+                     , bert >= 1.2
+                     , binary >= 0.8 && < 0.9
+                     , bytestring >= 0.10
+                     , stm >= 2.2
+                     , network >= 2.6
+                     , HDBC -any
+                     , HDBC-sqlite3 -any
+  default-language:    Haskell2010
+  other-modules:       Alice.Ticker
+                     , Alice.Utils
+                     , Alice.Network
+                     , Alice.Sensor
+                     , Alice.Data
+                     , Alice.Form
+
+executable alicehs2-exe
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , alicehs2
+  default-language:    Haskell2010
+
+test-suite alicehs2-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base
+                     , alicehs2
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/githubuser/alicehs2
