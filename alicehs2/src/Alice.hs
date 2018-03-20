@@ -51,8 +51,8 @@ iteration state =
 
 loop :: a -> (a -> IO a) -> IO ()
 loop s fun = do
-  new <- fun s
-  loop new fun
+  s' <- fun s
+  loop s' fun
 
 frame :: AliceState -> IO NowData
 frame state = return (state, Frame {
