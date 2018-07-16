@@ -24,6 +24,8 @@ dependencies:
 - bytestring >= 0.10
 - HDBC >= 2.3
 - HDBC-sqlite3 >= 2.3
+- bert -any
+- network-simple -any
 
 library:
   source-dirs: src
